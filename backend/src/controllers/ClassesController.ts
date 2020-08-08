@@ -14,31 +14,35 @@ export default class ClassesController{
         }
 
         const timeInMinutes = convertHourToMinutes(filters.time as string)
-        
-        const classes = await db('classes')
-                            .whereExists(function(){
-                                this.select('class_schedule.*')
-                                    .from('class_schedule')
-                                    .whereRaw('`class_schedule`.`class_id` = `classes`.`id`')
-                                    .whereRaw('`class_schedule`.`week_day` = ??', [Number(filters.week_day as string)])
-                                    .whereRaw('`class_schedule`.`from` <= ??',[timeInMinutes])
-                                    .whereRaw('`class_schedule`.`to` > ??',[timeInMinutes])
-                            })
-                            .where('classes.subject','=',filters.subject as string)
-                            .join('users', 'classes.user_id', '=' , 'users.id')
-                            .select(['classes.*','users.*'])
 
-        return res.json(classes)
+        try{
+            const classes = await db('classes')
+            .whereExists(function(){
+                this.select('class_schedule.*')
+                    .from('class_schedule')
+                    .whereRaw('`class_schedule`.`class_id` = `classes`.`id`')
+                    .whereRaw('`class_schedule`.`week_day` = ??', [Number(filters.week_day as string)])
+                    .whereRaw('`class_schedule`.`from` <= ??',[timeInMinutes])
+                    .whereRaw('`class_schedule`.`to` > ??',[timeInMinutes])
+            })
+            .where('classes.subject','=',filters.subject as string)
+            .join('users', 'classes.user_id', '=' , 'users.id')
+            .select(['classes.*','users.*'])
+
+            return res.json(classes)
+        }catch(e){
+            return res.send(e)
+        }
         }
         async create(req:Request,res:Response){
             const {
                 name,
-            avatar,
-            whatsapp,
-            bio,
-            subject,
-            cost,
-            schedule
+                avatar,
+                whatsapp,
+                bio,
+                subject,
+                cost,
+                schedule
         } = req.body
     
         const trx = await db.transaction();
@@ -49,7 +53,7 @@ export default class ClassesController{
                 avatar,
                 whatsapp,
                 bio
-            })
+            }).catch(e=>{throw e+' Nos usuarios'})
         
             const user_id = insertedUsersIds[0];
         
@@ -57,7 +61,7 @@ export default class ClassesController{
                 subject,
                 cost,
                 user_id
-            })
+            }).catch(e=>{throw e+' Nas aulas'})
         
             const class_id = insertedClassesIds[0]
         
@@ -70,9 +74,11 @@ export default class ClassesController{
                     from,
                     to,
                     class_id
-                })
+                }).catch(e=>{throw e+' Nas datas'})
         
             }
+
+            await trx.commit();
         }catch(e)
         {
             await trx.rollback()
