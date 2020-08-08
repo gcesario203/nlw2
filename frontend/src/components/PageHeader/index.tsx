@@ -1,4 +1,3 @@
-import { type } from 'os'
 import React from 'react'
 import {Link} from 'react-router-dom'
 import BackIcon from '../../assets/images/icons/back.svg'
