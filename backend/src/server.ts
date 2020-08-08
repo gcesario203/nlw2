@@ -1,11 +1,9 @@
 import express from "express"
+import routes from './routes'
 const app = express();
 
 app.use(express.json());
-
-app.get('/', (req,res)=>{
-    return res.json({cesao:"quero jogar dark souls"})
-})
+app.use(routes)
 
 app.listen(666,()=>{
     console.log("Servidor iniciado")
