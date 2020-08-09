@@ -1,11 +1,13 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { View , Text , Image, Linking} from 'react-native'
 import { RectButton } from 'react-native-gesture-handler'
 import heartOutlineIcon from '../../assets/images/icons/heart-outline.png'
 import unfavoriteIcon from '../../assets/images/icons/unfavorite.png'
 import whatsappIcon from '../../assets/images/icons/whatsapp.png'
+import AsynStorage from '@react-native-community/async-storage'
 
 import styles from './styles'
+import api from '../../services/api'
 
 export interface Teacher{
     id:number,
@@ -19,13 +21,44 @@ export interface Teacher{
 }
 
 interface TeacherProps{
-    teacher:Teacher
+    teacher:Teacher,
+    favorited:boolean
 }
 
-const TeacherItem: React.FC<TeacherProps> = ({teacher}) =>{
+const TeacherItem: React.FC<TeacherProps> = ({teacher,favorited}) =>{
+    const [isFavorited,setIsFavorited] = useState(favorited)
 
     function handleZipzip(){
         Linking.openURL(`whatsapp://send?phone=${teacher.whatsapp}`)
+        api.post('connections',{
+            user_id:teacher.id
+        })
+    }
+
+    async function handleFavorite(){
+        const favoritos = await AsynStorage.getItem('favorites')
+        let favoritosArray = []
+
+
+        if(favoritos){
+            favoritosArray = JSON.parse(favoritos)
+        }
+
+        if(isFavorited){
+            const favoriteIndex = favoritosArray.findIndex((teacherItem:Teacher)=>{
+                return teacherItem.id = teacher.id
+            })
+
+            favoritosArray.splice(favoriteIndex,1)
+            setIsFavorited(false)
+        }else{
+
+            favoritosArray.push(teacher)
+
+            setIsFavorited(true)
+        }
+
+        await AsynStorage.setItem('favorites', JSON.stringify(favoritosArray))
     }
 
     return (
@@ -57,9 +90,17 @@ const TeacherItem: React.FC<TeacherProps> = ({teacher}) =>{
                     </Text>
                 </Text>
                 <View style={styles.buttonsContainer}>
-                    <RectButton style={{...styles.favorite,...styles.favorited}}>
-                        {/* <Image source={heartOutlineIcon}></Image> */}
-                        <Image source={unfavoriteIcon}></Image>
+                    <RectButton
+                        style={
+                            [
+                                styles.favorite,
+                                isFavorited?styles.favorited:{}
+                            ]
+                        }
+                        onPress={handleFavorite}
+                    >
+                        {isFavorited?<Image source={unfavoriteIcon}></Image>:<Image source={heartOutlineIcon}></Image>}
+
                     </RectButton>
 
                     <RectButton
