@@ -1,5 +1,5 @@
-import React from 'react'
-import {View, Image, Text, TouchableOpacity} from 'react-native'
+import React, { useEffect, useState } from 'react'
+import {View, Image, Text} from 'react-native'
 import styles from './styles'
 
 import landingImg from '../../assets/images/landing.png'
@@ -8,9 +8,11 @@ import giveClassesIcon from '../../assets/images/icons/give-classes.png'
 import hearthIcon from '../../assets/images/icons/heart.png'
 import {useNavigation} from '@react-navigation/native'
 import {RectButton} from 'react-native-gesture-handler'
+import api from '../../services/api'
 
 function Landing(){
     const {navigate} = useNavigation()
+    const [connection,setConnection] = useState(0)
 
     function handleNavigateToGiveClassesPage(){
         navigate('GiveClasses')
@@ -19,6 +21,15 @@ function Landing(){
     function handleNavigateToStudyPages(){
         navigate('Study')
     }
+
+    useEffect(()=>{
+        api.get('connections').then(res=>{
+            const totalConnections = res.data
+
+            setConnection(totalConnections)
+        })
+    },[])
+
         return(
             <View style={styles.container}>
                 <Image source={landingImg} style={styles.banner}/>
@@ -47,7 +58,7 @@ function Landing(){
                 </View>
 
                 <Text style={styles.totalConnections}>
-                    Total de 0 conexões realizadas{' '}<Image source={hearthIcon}></Image>
+                    Total de {connection} conexões realizadas{' '}<Image source={hearthIcon}></Image>
                 </Text>
             </View>
         )

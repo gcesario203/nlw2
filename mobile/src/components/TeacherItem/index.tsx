@@ -1,5 +1,5 @@
 import React from 'react'
-import { View , Text , Image} from 'react-native'
+import { View , Text , Image, Linking} from 'react-native'
 import { RectButton } from 'react-native-gesture-handler'
 import heartOutlineIcon from '../../assets/images/icons/heart-outline.png'
 import unfavoriteIcon from '../../assets/images/icons/unfavorite.png'
@@ -7,33 +7,53 @@ import whatsappIcon from '../../assets/images/icons/whatsapp.png'
 
 import styles from './styles'
 
-function TeacherItem(){
+export interface Teacher{
+    id:number,
+    user_id: number,
+    subject:string,
+    cost:number,
+    name:string,
+    avatar:string,
+    whatsapp:string,
+    bio: string
+}
+
+interface TeacherProps{
+    teacher:Teacher
+}
+
+const TeacherItem: React.FC<TeacherProps> = ({teacher}) =>{
+
+    function handleZipzip(){
+        Linking.openURL(`whatsapp://send?phone=${teacher.whatsapp}`)
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.profile}>
                 <Image
                     style={styles.avatar}
-                    source={{uri:'https://github.com/gcesario203.png'}}
+                    source={{uri:teacher.avatar}}
                 >
                 </Image>
                 <View style={styles.profileInfo}>
                     <Text style={styles.name}>
-                        Gabriel Cesario
+                        {teacher.name}
                     </Text>
                     <Text style={styles.subject}>
-                        História
+                        {teacher.subject}
                     </Text>
                 </View>
             </View>
             <Text style={styles.bio}>
-                    Explicando por que não ser como eu
+                {teacher.bio}
             </Text>
 
             <View style={styles.footer}>
                 <Text style={styles.price}>
                     Preço/hora {'    '}
                     <Text style={styles.priceValue}>
-                        R$ 20.00
+                        R$  {teacher.cost}.00
                     </Text>
                 </Text>
                 <View style={styles.buttonsContainer}>
@@ -42,7 +62,10 @@ function TeacherItem(){
                         <Image source={unfavoriteIcon}></Image>
                     </RectButton>
 
-                    <RectButton style={styles.contact}>
+                    <RectButton
+                        style={styles.contact}
+                        onPress={handleZipzip}
+                    >
                         <Image source={whatsappIcon}></Image>
                         <Text style={styles.contactText}>
                             Entrar em contato

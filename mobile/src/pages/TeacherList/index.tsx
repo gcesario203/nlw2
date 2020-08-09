@@ -5,13 +5,32 @@ import {Feather} from '@expo/vector-icons'
 
 import styles from './styles'
 import PageHeader from '../../components/PageHeader'
-import TeacherItem from '../../components/TeacherItem'
+import TeacherItem, {Teacher} from '../../components/TeacherItem'
+import api from '../../services/api'
 
 
 function TeacherList() {
-    const [isfiltersVisible, setIsfiltersVisible] = useState(false)
+    const [isfiltersVisible, setIsfiltersVisible] = useState(true)
+    const[teachers,setTeachers] = useState([])
+    const[subject,setSubject] = useState('')
+    const[week_day,setWeek_day] = useState('')
+    const[time,setTime] = useState('')
+
 
     function showFilters(){
+        setIsfiltersVisible(!isfiltersVisible)
+    }
+
+    async function searchTeachers(){
+        const response = await api.get('classes',{
+            params:{
+                subject,
+                week_day,
+                time
+            }
+        })
+
+        setTeachers(response.data)
         setIsfiltersVisible(!isfiltersVisible)
     }
  
@@ -30,7 +49,7 @@ function TeacherList() {
                     </BorderlessButton>
                     }
                 >
-                {isfiltersVisible && (
+                {(isfiltersVisible) && (
                     <View style={styles.searchForm}>
                         <Text style={styles.label}>
                             Matérias
@@ -38,6 +57,9 @@ function TeacherList() {
                         <TextInput
                             style={styles.input}
                             placeholder="Qual a matéria"
+                            value={subject}
+                            onChangeText={(text)=>setSubject(text)}
+                            placeholderTextColor='#c1bccc'
                         >
                         </TextInput>
                         <View style={styles.inputGroup}>
@@ -49,6 +71,8 @@ function TeacherList() {
                                     style={styles.input}
                                     placeholder="Qual o dia?"
                                     placeholderTextColor='#c1bccc'
+                                    value={week_day}
+                                    onChangeText={(text)=>setWeek_day(text)}
                                 >
                                 </TextInput>
                             </View>
@@ -59,30 +83,42 @@ function TeacherList() {
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Qual o horário?"
+                                    value={time}
+                                    onChangeText={(text)=>setTime(text)}
                                     placeholderTextColor='#c1bccc'
                                 >
                                 </TextInput>
                             </View>
                         </View>
 
-                        <RectButton style={styles.submitButton}>
+                        <RectButton
+                            style={styles.submitButton}
+                            onPress={searchTeachers}
+                        >
                             <Text style={styles.submitButtonText}>Filtrar</Text>
                         </RectButton>
                     </View>
                 )}
             </PageHeader>
 
-            <ScrollView
+            
+
+            {!isfiltersVisible &&(
+                <ScrollView
                 style={styles.teacherList}
                 contentContainerStyle={{
                     paddingHorizontal: 16,
                     paddingBottom: 24
                 }}
             >
-                <TeacherItem></TeacherItem>
-                <TeacherItem></TeacherItem>
-                <TeacherItem></TeacherItem>
+                {teachers.map((teacher:Teacher)=>{
+                    return <TeacherItem
+                                key={teacher.id}
+                                teacher={teacher}
+                            ></TeacherItem>
+                })}
             </ScrollView>
+            )}
         </View>
     )
 }
